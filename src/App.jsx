@@ -17,7 +17,33 @@ export default function App() {
 
 async function fetchImages() {
 
-  // fetches data from api
+  const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=12", {
+      mode: 'cors'
+    })
+    .then((response) => {
+      return response.json();
+    })
+    .then((response) => {
+      return response.results;
+    })
+
+  const pokemonList =  await response.map(async(pokemon) => {
+    return await fetch(pokemon.url, {mode: "cors"})
+    .then((res) => {
+      return res.json();
+    })
+    .then((res) => res.sprites.front_default)
+    .then (img => {
+      return {
+      img: img,
+      id: pokemon.id,
+      name: pokemon.name
+    }
+    })
+
+  })
+  console.log(pokemonList);
+  return await pokemonList;
 }
 
 
@@ -40,7 +66,8 @@ function GameBody() {
 
     if(!ignore) {
       async function loadData() {
-        // updating the list
+        const pokemonList = await fetchImages();
+        setCards(await pokemonList);
       }
 
       loadData();
