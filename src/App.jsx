@@ -4,7 +4,7 @@ import './game.css';
 export default function App() {
   return (
     <>
-    <div>
+    <div className="left-header">
       <h1>Test your memory with this game</h1>
       <p>Get points by clicking on an image but don't click on any more than once!</p>
     </div>
@@ -15,9 +15,9 @@ export default function App() {
 
 
 
-async function fetchImages() {
+async function fetchUrls() {
 
-  const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=12", {
+  const response = await fetch("https://pokeapi.co/api/v2/pokemon/?limit=36", {
       mode: 'cors'
     })
     .then((response) => {
@@ -26,7 +26,12 @@ async function fetchImages() {
     .then((response) => {
       return response.results;
     })
-  return await response;
+  let index = 0;
+  const list = await response.filter((ele) => {
+    index +=1;
+    if(index % 3 === 0) return ele;
+  })
+  return await list;
 }
 
 
@@ -51,7 +56,9 @@ function GameBody() {
 
       async function loadData() {
 
-        const response = await fetchImages();
+        const response = await fetchUrls();
+        let key = -1;
+
         Promise.all(response.map(async(pokemon) => {
           return await fetch(pokemon.url, {mode: "cors"})
           .then((res) => {
@@ -59,9 +66,10 @@ function GameBody() {
           })
           .then((res) => res.sprites.front_default)
           .then (img => {
+            key += 1;
             return {
             img: img,
-            id: pokemon.id,
+            id: key,
             name: pokemon.name
           }
           })
@@ -80,26 +88,42 @@ function GameBody() {
 
   return (
     <>
-      <div>
-        <span>Current Streak: {userScore}</span>
-        <span>Best Score: {bestScore}</span>
+      <div className='score-card right-header'>
+        <div>Current Streak: {userScore}</div>
+        <div>Best Score: {bestScore}</div>
       </div>
       <Main 
       onGameOver={handleGameOver}
       onUserClick={handleScoreIncrease}
       initialCards={cards}
+      key={cards.length}
       />
     </>
   )
 }
 
 
-function Main({initialCards}) {
-  const [cardsList, setCardsList] = useState(initialCards);
+function Main({initialCards, onUserClick, onGameOver}) {
 
-  function handleUserClick() {
+  if(initialCards.length ==0) {
+    return (
+      <div>Loading.....</div>
+    )
+  }
+  const [cardsList, setCardsList] = useState(initialCards);
+  const [userSelctedList, setUserSelectedList] = useState([]);
+  function handleUserClick(e) {
+    
+    const check = userSelctedList.find((ele) => ele === e.target.getAttribute('alt') )
+
+    if(!!check) {
+      onGameOver();
+      return;
+    }
+
+    onUserClick();
     setCardsList(randomizeList(cardsList));
-    console.log("clicked");
+    setUserSelectedList([...userSelctedList, e.target.getAttribute('alt')]);
   }
 
   return (
@@ -121,8 +145,8 @@ function Main({initialCards}) {
 
 function PlayerCard({cardName, onUserClick, imgUrl}) {
   return (
-    <div onClick={onUserClick}>
-      <img src={imgUrl} alt={img}/>
+    <div onClick={onUserClick} className="cards">
+      <img src={imgUrl} alt={cardName}/>
       <span id={cardName}>{cardName}</span>
     </div>
   )
@@ -133,7 +157,7 @@ function randomizeList(list) {
   let length = 0;
   const result = [...list];
 
-  while(length < list.length/2) {
+  while(length < list.length) {
     let index = (length*31+length) % list.length;
 
     const temp = result[length];
