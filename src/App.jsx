@@ -26,24 +26,7 @@ async function fetchImages() {
     .then((response) => {
       return response.results;
     })
-
-  const pokemonList =  await response.map(async(pokemon) => {
-    return await fetch(pokemon.url, {mode: "cors"})
-    .then((res) => {
-      return res.json();
-    })
-    .then((res) => res.sprites.front_default)
-    .then (img => {
-      return {
-      img: img,
-      id: pokemon.id,
-      name: pokemon.name
-    }
-    })
-
-  })
-  console.log(pokemonList);
-  return await pokemonList;
+  return await response;
 }
 
 
@@ -65,9 +48,27 @@ function GameBody() {
     let ignore = false;
 
     if(!ignore) {
+
       async function loadData() {
-        const pokemonList = await fetchImages();
-        setCards(await pokemonList);
+
+        const response = await fetchImages();
+        Promise.all(response.map(async(pokemon) => {
+          return await fetch(pokemon.url, {mode: "cors"})
+          .then((res) => {
+            return res.json();
+          })
+          .then((res) => res.sprites.front_default)
+          .then (img => {
+            return {
+            img: img,
+            id: pokemon.id,
+            name: pokemon.name
+          }
+          })
+
+        })).then((res) => {
+          setCards(res);
+        })
       }
 
       loadData();
