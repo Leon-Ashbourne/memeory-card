@@ -40,9 +40,13 @@ function GameBody() {
   const [userScore, setUserScore] = useState(0);
   const [bestScore, setBestScore] = useState(0);
   const [cards, setCards] = useState([]);
+  const [key, setKey] = useState(0);
 
   function handleGameOver() {
-    if(userScore > bestScore) setBestScore(userScore);
+    if(userScore > bestScore) {
+      setBestScore(userScore);
+      setKey(key+1);
+    }
     setUserScore(0);
   }
   function handleScoreIncrease() {
@@ -76,6 +80,7 @@ function GameBody() {
 
         })).then((res) => {
           setCards(res);
+          setKey(key+1);
         })
       }
 
@@ -96,7 +101,7 @@ function GameBody() {
       onGameOver={handleGameOver}
       onUserClick={handleScoreIncrease}
       initialCards={cards}
-      key={cards.length}
+      key={key}
       />
     </>
   )
@@ -111,7 +116,7 @@ function Main({initialCards, onUserClick, onGameOver}) {
   function handleUserClick(e) {
     
     setCardsList(randomizeList(cardsList));
-    
+
     const check = userSelctedList.find((ele) => ele === e.target.getAttribute('alt'))
     if(!!check) {
       onGameOver();
