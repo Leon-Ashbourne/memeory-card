@@ -105,24 +105,21 @@ function GameBody() {
 
 function Main({initialCards, onUserClick, onGameOver}) {
 
-  if(initialCards.length ==0) {
-    return (
-      <div>Loading.....</div>
-    )
-  }
   const [cardsList, setCardsList] = useState(initialCards);
   const [userSelctedList, setUserSelectedList] = useState([]);
+
   function handleUserClick(e) {
     
-    const check = userSelctedList.find((ele) => ele === e.target.getAttribute('alt') )
-
+    setCardsList(randomizeList(cardsList));
+    
+    const check = userSelctedList.find((ele) => ele === e.target.getAttribute('alt'))
     if(!!check) {
       onGameOver();
+      setUserSelectedList([]);
       return;
     }
 
     onUserClick();
-    setCardsList(randomizeList(cardsList));
     setUserSelectedList([...userSelctedList, e.target.getAttribute('alt')]);
   }
 
